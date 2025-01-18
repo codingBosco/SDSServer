@@ -1,0 +1,22 @@
+{
+  "name": "sdsserver",
+  "version": "1.0.0",
+  "description": "The server infrastructure of the SDS Database",
+  "main": "main.js",
+  "scripts": {
+    "test": "print"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codingBosco/SDSServer.git"
+  },
+  "author": "sese",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/codingBosco/SDSServer/issues"
+  },
+  "homepage": "https://github.com/codingBosco/SDSServer#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
