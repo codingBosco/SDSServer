@@ -4,7 +4,6 @@
   "description": "The server infrastructure of the SDS Database",
   "main": "main.js",
   "scripts": {
-    "test": "print"
   },
   "repository": {
     "type": "git",
