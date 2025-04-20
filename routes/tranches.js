@@ -1,9 +1,7 @@
 const express = require("express");
 const { DatabaseSync } = require("node:sqlite");
 const db = new DatabaseSync("db.sqlite");
-const tranchesDelegate = db.prepare(
-  "INSERT INTO tranches (id, formal, date, days) VALUES (?,?,?,?)",
-);
+
 function nullBodyError(res) {
   res.status(400).json({
     success: false,
@@ -14,7 +12,7 @@ function nullBodyError(res) {
 
 const router = express.Router();
 
-router.post("/data/tranches/append", (req, res) => {
+router.post("/append", (req, res) => {
   if (!req.body) {
     nullBodyError(res);
   }
@@ -22,7 +20,20 @@ router.post("/data/tranches/append", (req, res) => {
   const { id, formal, date, days } = req.body;
 
   try {
-    tranchesDelegate.run(id, formal, date, days);
+    const trancheStructure = db.prepare(`
+      INSERT INTO tranches (id, formal, date, days)
+      VALUES (
+      @id, @formal, @date, @days
+      )
+      `);
+
+    const result = trancheStructure.run({
+      id,
+      formal,
+      date,
+      days: JSON.stringify(days),
+    });
+
     res.status(200).json({
       success: true,
       message: "Dati inseriti con successo",
@@ -36,7 +47,7 @@ router.post("/data/tranches/append", (req, res) => {
   }
 });
 
-router.post("/data/tranches/update/:id", (req, res) => {
+router.post("/update/:id", (req, res) => {
   const { id } = req.params;
 
   if (!req.body) {
@@ -78,7 +89,7 @@ router.post("/data/tranches/update/:id", (req, res) => {
   }
 });
 
-router.post("/data/tranches/remove/:id", (req, res) => {
+router.post("/remove/:id", (req, res) => {
   const { id } = req.params;
 
   if (!req.body) {
@@ -116,17 +127,26 @@ router.post("/data/tranches/remove/:id", (req, res) => {
   }
 });
 
-router.get("/data/tranches", (req, res) => {
+router.get("/", (req, res) => {
   try {
     const query = db.prepare("SELECT * FROM tranches ORDER BY id");
     const tranches = query.all();
-    res.status(200).json(tranches);
+
+    const parsedTranche = tranches.map((tranche) => {
+      return {
+        ...tranche,
+        days: tranche.days ? JSON.parse(tranche.days) : [],
+      };
+    });
+    res.status(200).json(parsedTranche);
+    console.log("tranche sended!");
   } catch (error) {
     res.status(500).json({
       success: false,
       message: `Errore durante il recupero delle tranches: ${error.message}`,
       error: error,
     });
+    console.log("tranche no!");
   }
 });
 

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini App Telegram</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background: #fff;
+      color: #000;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Benvenuto nella Mini App!</h1>
+  <button onclick="invioDati()">Invia dati al bot</button>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function invioDati() {
+      // Puoi anche fare fetch al tuo server Node qui
+      tg.sendData("Dati inviati dalla mini app al bot!");
+    }
+  </script>
+</body>
+</html>

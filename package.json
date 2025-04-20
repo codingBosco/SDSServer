@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "The server infrastructure of the SDS Database",
   "main": "main.js",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codingBosco/SDSServer.git"
@@ -16,6 +15,17 @@
   },
   "homepage": "https://github.com/codingBosco/SDSServer#readme",
   "dependencies": {
-    "express": "^4.21.2"
+    "check-disk-space": "^3.4.0",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "node-cron": "^3.0.3",
+    "node-sqlite": "^0.0.2-security",
+    "node-telegram-bot-api": "^0.63.0",
+    "os-utils": "^0.0.14",
+    "path": "^0.12.7",
+    "process": "^0.11.10",
+    "socket.io": "^4.8.1",
+    "sqlite": "^5.1.1",
+    "systeminformation": "^5.25.11"
   }
 }
