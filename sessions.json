@@ -3,39 +3,15 @@
     "username": "sese",
     "secureCode": "1234",
     "activeSessions": [
-      "session_2cd03693dd4cd",
-      "session_f14c89f8e630d",
-      "session_ac3b18e34f92f",
-      "session_f037af5a8021a",
-      "session_8b0b8c152ee83",
-      "session_8017efed36023",
-      "session_9afa7b23cc3ae",
-      "session_8324ad3392695",
-      "session_b624115ff597",
-      "session_e118aba8301ad",
-      "session_08fad6bf8c8fd",
-      "session_a366e09509d2e",
-      "session_86be625a44032",
-      "session_27b3f404d6c8",
-      "session_720f29a605dee",
-      "session_c256812fd4ec9",
-      "session_c3d25ce71758e",
-      "session_0744820d80be6",
-      "session_15e977a2ff96",
-      "session_9301f903580bf",
-      "session_b0dc806c689b3",
-      "session_f4db9bae0de6",
-      "session_d6070b240065b",
-      "session_ac57551d17a99",
-      "session_fae2610164047",
-      "session_d9767e7e02711",
-      "session_f83fe417218a2",
-      "session_aadcf7172afbc",
-      "session_e19dd3bbe5ac9",
-      "session_ed2a843243f3d",
-      "session_bf827c91d646c",
-      "session_f65933ba155c6",
-      "session_c307650cb7de1"
+      "session_386532dfaa98e",
+      "session_3bb48c597874b",
+      "session_7f9600f88f7f3",
+      "session_a64763fc51e35",
+      "session_5a5330d50304b",
+      "session_edb451f6e5fee",
+      "session_169bb087532df",
+      "session_b57074a2bd7be",
+      "session_6340678b5f936"
     ]
   },
   {
@@ -43,9 +19,7 @@
     "secureCode": "5678",
     "activeSessions": [
       "debug2",
-      "session_071c7a8b8586c",
-      "session_98561326eab12",
-      "session_b3059b29a3cea"
+      "session_2f6d8f57a421c"
     ]
   }
 ]
