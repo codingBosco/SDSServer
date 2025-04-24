@@ -1,0 +1,20 @@
+{
+  "serverStatus": "active",
+  "firstActivationTimestamp": "2025-04-21T09:19:29.523Z",
+  "joinedUsersSinceAct": 0,
+  "activeUsers": 0,
+  "os": "macos",
+  "serverCPU": "Apple M4 Pro",
+  "availableCPUAmount": 14,
+  "cpuIsOnOverload": false,
+  "totalRamAmount": "48 GB",
+  "usedRamAmount": "48 GB",
+  "availableRamAmount": "0 GB",
+  "totalDisk": " GB",
+  "memoryTakenByServer": "107.86 undefined GB",
+  "connectionStatus": "stabile",
+  "telegramServiceStatus": "OK",
+  "webServiceStatus": "OK",
+  "databaseHealthCheckCycleStatus": "OK",
+  "panicsReporterStatus": "OK"
+}

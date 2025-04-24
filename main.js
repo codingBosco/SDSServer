@@ -42,6 +42,29 @@ wss.addListener("close", (disconnection) => {
 });
 
 server.listen(port, () => {
+  const db = new DatabaseSync("db.sql");
+
+  try {
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS tranches (id TEXT PRIMARY KEY, formal TEXT, date DATETIME, days TEXT)",
+    );
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS days (id TEXT PRIMARY KEY, date DATETIME, packs TEXT)",
+    );
+
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT, surname TEXT, classroom TEXT, attendedPacks TEXT, isGuardian TEXT, isIgnored TEXT, isModerator TEXT)",
+    );
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS classrooms (id TEXT PRIMARY KEY, entrance TEXT, position TEXT, num TEXT, name TEXT, max INTEGER, formal TEXT, studentsNum INTEGER, avaible INTEGER, plex TEXT)",
+    );
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS packs (id TEXT PRIMARY KEY, formal TEXT, classroom TEXT, conferences TEXT, arguments TEXT, day TEXT)",
+    );
+    console.log("Database tables created successfully");
+  } catch (err) {
+    console.error("Error creating database tables:", err);
+  }
   console.log("Server + WebSocket listening on port: ${port}");
 });
 
@@ -60,32 +83,6 @@ router.use((req, res, next) => {
 app.use(router);
 
 //----------- GENERAL FUNCTIONS ------------
-
-const db = new DatabaseSync("db.sql");
-
-db.exec(
-  "CREATE TABLE IF NOT EXISTS tranches (id STRING PRIMARY KEY, formal STRING, date DATETIME, days TEXT)",
-);
-db.exec(
-  "CREATE TABLE IF NOT EXISTS days (id STRING PRIMARY KEY, date DATETIME, packs TEXT)",
-);
-
-db.exec(
-  "CREATE TABLE IF NOT EXISTS students (id STRING PRIMARY KEY, name STRING, surname STRING, classroom STRING, attendedPacks TEXT, isGuardian TEXT, isIgnored TEXT, isModerator TEXT)",
-);
-db.exec(
-  "CREATE TABLE IF NOT EXISTS classrooms (id STRING PRIMARY KEY, entrance STRING, position STRING, num STRING, name STRING, max SMALLINT, formal STRING, studentsNum SMALLINT, avaible BOOLEAN, plex STRING)",
-);
-db.exec(
-  "CREATE TABLE IF NOT EXISTS packs (id STRING PRIMARY KEY, formal STRING, classroom STRING, conferences TEXT, arguments TEXT, day STRING)",
-);
-
-const tranchesDelegate = db.prepare(
-  `INSERT INTO tranches (id, formal, date, days)
-  VALUES (
-  @id, @formal, @date, @days
-  )`,
-);
 
 function formatBytes(bytes) {
   if (bytes === 0) return "0 Bytes";
@@ -440,6 +437,94 @@ app.get("/api/diagnostics/generate", async (req, res) => {
   }
 });
 
+app.post("/api/login/user=:username", (req, res) => {
+  const sessionsFile = path.join(__dirname, "sessions.json");
+
+  const username = req.params.username;
+  const secureCode = req.body.secureCode; // Changed this line to access secureCode property
+
+  try {
+    // Read the sessions file
+    let sessions = [];
+
+    if (fs.existsSync(sessionsFile)) {
+      const fileContent = fs.readFileSync(sessionsFile, "utf8");
+      sessions = JSON.parse(fileContent);
+    }
+
+    // Find the user with matching username and secureCode
+    const user = sessions.find(
+      (user) => user.username === username && user.secureCode === secureCode,
+    );
+
+    if (user) {
+      // Add the current session time to the user's activeSessions array
+      if (!user.activeSessions) {
+        user.activeSessions = [];
+      }
+
+      let newActiveSession = "session_" + Math.random().toString(16).slice(2);
+
+      user.activeSessions.push(newActiveSession);
+
+      // Save the updated sessions file
+      fs.writeFileSync(sessionsFile, JSON.stringify(sessions, null, 2));
+
+      res.status(200).json({
+        response_status: "ok",
+        logged_for_session: newActiveSession,
+      });
+
+      console.log(
+        `${username} logged in the new ${newActiveSession} app session`,
+      );
+    } else {
+      res.status(401).json({ status: "error", message: "Invalid credentials" });
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Server error during login process" });
+  }
+});
+
+app.get("/api/login/user=:username/by_session=:sessionID", (req, res) => {
+  const loginFiles = path.join(__dirname, "sessions.json");
+
+  const username = req.params.username;
+  const session = req.params.sessionID;
+
+  try {
+    let sessions = [];
+    if (fs.existsSync(loginFiles)) {
+      const content = fs.readFileSync(loginFiles, "utf8");
+      sessions = JSON.parse(content);
+    }
+
+    const user = sessions.find(
+      (user) =>
+        user.username === username && user.activeSessions.includes(session),
+    );
+
+    if (user) {
+      res.status(200).json({
+        status: "Ok",
+        otherSessions: user.activeSessions,
+      });
+      console.log(`User ${username} logged with session: ${session}.`);
+    }
+  } catch (error) {
+    console.error(
+      `User tried to log with ${username} and sessionID: ${session}. ${error}`,
+    );
+    res.status(500).json({
+      status: "error",
+      message: "Server error during login",
+    });
+  }
+});
+
 let firstActivationTimestamp = new Date().toISOString();
 let joinedUsersSinceAct = 0;
 let activeUsers = 0;
@@ -461,3 +546,50 @@ function saveFile(data) {
     }
   });
 }
+
+app.get("/api/user-data", (req, res) => {
+  const sessionId = req.query.session;
+
+  if (!sessionId) {
+    return res
+      .status(400)
+      .json({ status: "error", message: "Session ID required" });
+  }
+
+  const sessionsFile = path.join(__dirname, "sessions.json");
+
+  try {
+    // Read the sessions file
+    let sessions = [];
+    if (fs.existsSync(sessionsFile)) {
+      const fileContent = fs.readFileSync(sessionsFile, "utf8");
+      sessions = JSON.parse(fileContent);
+    }
+
+    // Find the user with this active session
+    const user = sessions.find(
+      (user) => user.activeSessions && user.activeSessions.includes(sessionId),
+    );
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ status: "error", message: "Invalid or expired session" });
+    }
+
+    // Fetch user-specific data based on the username
+    // This is where you would retrieve data from your database tailored to this user
+    const userData = {
+      username: user.username,
+      // Example data - replace with actual database queries based on your data structure
+      tranches: db.prepare("SELECT * FROM tranches LIMIT 5").all(),
+      students: db.prepare("SELECT * FROM students LIMIT 5").all(),
+      // Add other data types as needed
+    };
+
+    res.status(200).json(userData);
+  } catch (error) {
+    console.error("Error retrieving user data:", error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+});
