@@ -1,1 +1,3 @@
-db/
+SDSServer/db.sql
+SDSServer/db.sqlite
+SDSServer/diagnostics/
