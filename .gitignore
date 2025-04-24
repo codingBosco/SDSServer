@@ -1,3 +1,4 @@
 SDSServer/db.sql
 SDSServer/db.sqlite
 SDSServer/diagnostics/
+.DS_store
