@@ -13,7 +13,6 @@ const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
 
-//**Only availale in DEBUG mode.
 const port = 3000;
 const app = express();
 
@@ -24,8 +23,44 @@ wss.on("connection", (ws) => {
   console.log("Client Connected");
 
   ws.on("message", (mess) => {
-    console.log("Received: ", mess);
-    ws.send("Echo: to messae");
+    try {
+      const data = JSON.parse(mess.toString("utf8"));
+
+      console.log(data.from);
+
+      // Iterate through interpolators if they exist
+      if (data.interpolators && Array.isArray(data.interpolators)) {
+        data.interpolators.forEach((interpolator, index) => {
+          const checkRecord = db
+            .prepare(`SELECT * FROM ${data.targetClass} WHERE id = ?`)
+            .get(data.targetID);
+
+          if (!checkRecord) {
+            console.error(`No record found with id: ${data.targetID}`);
+            //ADD JSON ERROR RESPONSE
+            // ws.send(data)
+            return;
+          }
+
+          const query = db
+            .prepare(
+              `UPDATE ${data.targetClass} SET \`${interpolator.field}\` = ? WHERE id = ?`,
+            )
+            .run(interpolator.updatedValue, data.targetID);
+        });
+      } else {
+        console.error("Error found in the Interpolators Array.");
+      }
+    } catch (error) {
+      console.error("Error processing message:", error);
+      ws.send(
+        JSON.stringify({
+          response: 0,
+          error: "Error in data editing.",
+          details: error.message,
+        }),
+      );
+    }
   });
 
   ws.on("close", (closed) => {
@@ -41,30 +76,31 @@ wss.addListener("close", (disconnection) => {
   console.log("Client Disconnected", disconnection.reason);
 });
 
+const db = new DatabaseSync("db.sqlite");
+
+try {
+  db.exec(
+    "CREATE TABLE IF NOT EXISTS tranches (id TEXT PRIMARY KEY, formal TEXT, date DATETIME, days TEXT)",
+  );
+  db.exec(
+    "CREATE TABLE IF NOT EXISTS days (id TEXT PRIMARY KEY, date DATETIME, packs TEXT)",
+  );
+
+  db.exec(
+    "CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT, surname TEXT, classroom TEXT, attendedPacks TEXT, isGuardian TEXT, isIgnored TEXT, isModerator TEXT)",
+  );
+  db.exec(
+    "CREATE TABLE IF NOT EXISTS classrooms (id TEXT PRIMARY KEY, entrance TEXT, position TEXT, num TEXT, name TEXT, max INTEGER, formal TEXT, studentsNum INTEGER, avaible INTEGER, plex TEXT)",
+  );
+  db.exec(
+    "CREATE TABLE IF NOT EXISTS packs (id TEXT PRIMARY KEY, formal TEXT, classroom TEXT, conferences TEXT, arguments TEXT, day TEXT)",
+  );
+  console.log("Database tables created successfully");
+} catch (err) {
+  console.error("Error creating database tables:", err);
+}
+
 server.listen(port, () => {
-  const db = new DatabaseSync("db.sql");
-
-  try {
-    db.exec(
-      "CREATE TABLE IF NOT EXISTS tranches (id TEXT PRIMARY KEY, formal TEXT, date DATETIME, days TEXT)",
-    );
-    db.exec(
-      "CREATE TABLE IF NOT EXISTS days (id TEXT PRIMARY KEY, date DATETIME, packs TEXT)",
-    );
-
-    db.exec(
-      "CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT, surname TEXT, classroom TEXT, attendedPacks TEXT, isGuardian TEXT, isIgnored TEXT, isModerator TEXT)",
-    );
-    db.exec(
-      "CREATE TABLE IF NOT EXISTS classrooms (id TEXT PRIMARY KEY, entrance TEXT, position TEXT, num TEXT, name TEXT, max INTEGER, formal TEXT, studentsNum INTEGER, avaible INTEGER, plex TEXT)",
-    );
-    db.exec(
-      "CREATE TABLE IF NOT EXISTS packs (id TEXT PRIMARY KEY, formal TEXT, classroom TEXT, conferences TEXT, arguments TEXT, day TEXT)",
-    );
-    console.log("Database tables created successfully");
-  } catch (err) {
-    console.error("Error creating database tables:", err);
-  }
   console.log("Server + WebSocket listening on port: ${port}");
 });
 
@@ -130,6 +166,9 @@ function nullBodyError(res) {
   });
   return;
 }
+
+const prismaRoute = require("./routes/prisma");
+app.use("/primsa", prismaRoute);
 
 //----------- DATAS APIs ------------
 
